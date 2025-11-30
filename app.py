@@ -9,9 +9,10 @@ Curso: Aprendizaje Estadistico - Semestre 2025-20
 ================================================================================
 """
 
+from pathlib import Path
+
 import streamlit as st
 import pandas as pd
-import numpy as np
 import pickle
 
 # Configuracion de la pagina
@@ -22,71 +23,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Estilos CSS personalizados
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 2.2rem;
-        font-weight: bold;
-        color: #1f4e79;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 1.1rem;
-        color: #666;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .result-alto {
-        background-color: #d4edda;
-        border: 2px solid #28a745;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-    }
-    .result-promedio {
-        background-color: #fff3cd;
-        border: 2px solid #ffc107;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-    }
-    .result-bajo {
-        background-color: #f8d7da;
-        border: 2px solid #dc3545;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-    }
-    .prediction-text {
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin: 0;
-    }
-    .info-box {
-        background-color: #e7f3ff;
-        border-left: 4px solid #2196F3;
-        padding: 15px;
-        margin: 10px 0;
-        border-radius: 0 5px 5px 0;
-    }
-    .recommendation-box {
-        background-color: #f0f0f0;
-        border-radius: 10px;
-        padding: 15px;
-        margin-top: 15px;
-    }
-    .footer {
-        text-align: center;
-        color: #888;
-        font-size: 0.85rem;
-        margin-top: 3rem;
-        padding-top: 1rem;
-        border-top: 1px solid #ddd;
-    }
-</style>
-""", unsafe_allow_html=True)
+CSS_PATH = Path(__file__).resolve().parent / "styles" / "main.css"
+
+
+def load_custom_css() -> None:
+    if CSS_PATH.exists():
+        css = CSS_PATH.read_text(encoding="utf-8")
+        st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    else:
+        st.warning("No se encontró el archivo de estilos en styles/main.css")
+
+
+load_custom_css()
 
 # Funcion para cargar el modelo
 @st.cache_resource
