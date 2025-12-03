@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 ================================================================================
 SISTEMA DE PREDICCION DE RENDIMIENTO ACADEMICO
@@ -16,7 +15,6 @@ import pandas as pd
 import streamlit as st
 import pickle
 
-# Configuracion de la pagina
 st.set_page_config(
     page_title="Sistema de Prediccion - Rendimiento Academico",
     page_icon=None,
