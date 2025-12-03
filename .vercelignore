@@ -37,7 +37,6 @@ Proyecto_RRSS_Rendimiento_Colab.ipynb
 app.py
 styles/
 *.pkl
-!api/modelo_rendimiento_academico.pkl  
 
 # System
 .DS_Store

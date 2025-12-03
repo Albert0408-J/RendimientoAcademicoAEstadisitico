@@ -10,20 +10,44 @@ Curso: Aprendizaje Estadistico - Semestre 2025-20
 """
 
 from flask import Flask, request, render_template, jsonify
-import pandas as pd
+import numpy as np
 import pickle
+import os
+import urllib.request
 from pathlib import Path
 
 app = Flask(__name__, template_folder='templates')
 
-# Cargar modelo al inicio (optimizar cold starts)
+# URL del modelo en almacenamiento externo (GitHub raw, Supabase, etc.)
+MODEL_URL = os.environ.get(
+    'MODEL_URL',
+    'https://raw.githubusercontent.com/Albert0408-J/RendimientoAcademicoAEstadisitico/staging/api/modelo_rendimiento_academico.pkl'
+)
+
+# Orden de features que espera el modelo (debe coincidir con el entrenamiento)
+FEATURE_ORDER = [
+    'Edad', 'Ciclo', 'Horas_Redes_Sociales', 'Horas_Estudio',
+    'Red_Social_Principal', 'Motivo_Uso', 'Afecta_Concentracion',
+    'Afecta_Horas_Estudio', 'Usa_Estrategias', 'Impacto_General'
+]
+
 def cargar_modelo():
+    """Carga el modelo desde URL externa o archivo local."""
+    # Intentar cargar desde archivo local primero (desarrollo)
+    local_path = Path(__file__).parent / 'modelo_rendimiento_academico.pkl'
+    if local_path.exists():
+        try:
+            with open(local_path, 'rb') as f:
+                return pickle.load(f)
+        except Exception:
+            pass
+    
+    # Intentar cargar desde URL externa (produccion)
     try:
-        model_path = Path(__file__).parent / 'modelo_rendimiento_academico.pkl'
-        with open(model_path, 'rb') as f:
-            model_data = pickle.load(f)
-        return model_data
-    except FileNotFoundError:
+        with urllib.request.urlopen(MODEL_URL, timeout=10) as response:
+            return pickle.load(response)
+    except Exception as e:
+        print(f"Error cargando modelo: {e}")
         return None
 
 model_data = cargar_modelo()
@@ -83,12 +107,17 @@ RECOMMENDATIONS = {
 }
 
 def run_prediction(model_data, features):
-    input_data = pd.DataFrame({key: [value] for key, value in features.items()})
+    """Ejecuta prediccion usando numpy arrays en lugar de pandas DataFrame."""
     modelo = model_data["model"]
     label_encoder = model_data["label_encoder"]
-
-    prediccion = modelo.predict(input_data)[0]
-    probabilidades = modelo.predict_proba(input_data)[0]
+    
+    # Construir array de features en el orden correcto
+    # El modelo espera un array 2D con las features en orden especifico
+    feature_values = [features[key] for key in FEATURE_ORDER]
+    input_array = np.array([feature_values], dtype=object)
+    
+    prediccion = modelo.predict(input_array)[0]
+    probabilidades = modelo.predict_proba(input_array)[0]
 
     prob_dict = {
         str(label_encoder.classes_[i]): float(prob)
