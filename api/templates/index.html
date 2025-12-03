@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Predicción de Rendimiento Académico</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .main-header {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .sub-header {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 0.25rem;
+        }
+        .result-alto {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .result-promedio {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .result-bajo {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .prediction-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        .recommendation-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+        .loading {
+            display: none;
+        }
+        .progress {
+            height: 25px;
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="main-header">Sistema de Predicción de Rendimiento Académico</h1>
+                <p class="sub-header">Basado en hábitos de uso de redes sociales en estudiantes universitarios peruanos</p>
+                
+                <div class="info-box">
+                    <strong>Modelo utilizado:</strong> Random Forest Classifier<br>
+                    <strong>Precisión del modelo:</strong> ~68% en datos de prueba<br>
+                    <strong>Dataset:</strong> 600 estudiantes universitarios peruanos
+                </div>
+                
+                <hr>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <h2>Ingrese los datos del estudiante</h2>
+                <form id="predictionForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edad" class="form-label">Edad</label>
+                                <input type="number" class="form-control" id="edad" name="edad" 
+                                       min="16" max="35" value="20" required>
+                                <div class="form-text">Edad del estudiante (16-35 años)</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="ciclo" class="form-label">Ciclo Académico</label>
+                                <select class="form-select" id="ciclo" name="ciclo" required>
+                                    {% for i in range(1, 11) %}
+                                    <option value="{{ i }}" {% if i == 3 %}selected{% endif %}>Ciclo {{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Ciclo académico actual (1-10)</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="horas_redes_sociales" class="form-label">Horas diarias en redes sociales</label>
+                                <input type="range" class="form-range" id="horas_redes_sociales" name="horas_redes_sociales" 
+                                       min="0.5" max="12" step="0.5" value="4" required>
+                                <div class="form-text">Promedio: <span id="horas_redes_valor">4.0</span> horas diarias</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="horas_estudio" class="form-label">Horas diarias de estudio</label>
+                                <input type="range" class="form-range" id="horas_estudio" name="horas_estudio" 
+                                       min="0.5" max="10" step="0.5" value="3" required>
+                                <div class="form-text">Promedio: <span id="horas_estudio_valor">3.0</span> horas diarias</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="red_social_principal" class="form-label">Red social principal</label>
+                                <select class="form-select" id="red_social_principal" name="red_social_principal" required>
+                                    {% for network in social_networks %}
+                                    <option value="{{ network }}">{{ network }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Red social que más utiliza</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="motivo_uso" class="form-label">Principal motivo de uso</label>
+                                <select class="form-select" id="motivo_uso" name="motivo_uso" required>
+                                    {% for motivo in motivos_uso %}
+                                    <option value="{{ motivo }}">{{ motivo }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Motivo principal por el que usa redes sociales</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="afecta_concentracion" class="form-label">Las RRSS afectan tu concentración?</label>
+                                <select class="form-select" id="afecta_concentracion" name="afecta_concentracion" required>
+                                    {% for freq in frecuencia_impacto %}
+                                    <option value="{{ freq }}" {% if freq == 'A veces' %}selected{% endif %}>{{ freq }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Frecuencia con que las redes sociales afectan tu concentración</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="afecta_horas_estudio" class="form-label">Crees que las RRSS afectan tus horas de estudio?</label>
+                                <select class="form-select" id="afecta_horas_estudio" name="afecta_horas_estudio" required>
+                                    {% for resp in respuesta_binaria %}
+                                    <option value="{{ resp }}">{{ resp }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Percepción de si las redes sociales afectan tu tiempo de estudio</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="usa_estrategias" class="form-label">Usas estrategias para evitar distracciones?</label>
+                                <select class="form-select" id="usa_estrategias" name="usa_estrategias" required>
+                                    {% for resp in respuesta_binaria %}
+                                    <option value="{{ resp }}" {% if resp == 'No' %}selected{% endif %}>{{ resp }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Si usas alguna estrategia para evitar distracciones de RRSS</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="impacto_general" class="form-label">Percepción del impacto de RRSS en tu rendimiento</label>
+                                <select class="form-select" id="impacto_general" name="impacto_general" required>
+                                    {% for impacto in impacto_general %}
+                                    <option value="{{ impacto }}" {% if impacto == 'Neutral' %}selected{% endif %}>{{ impacto }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Tu percepción general del impacto de las redes sociales</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <span class="spinner-border spinner-border-sm loading" role="status" aria-hidden="true"></span>
+                            Predecir Rendimiento Académico
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="results" style="display: none;">
+            <div class="row mt-5">
+                <div class="col-12">
+                    <h2>Resultado de la Predicción</h2>
+                    <div id="predictionResult"></div>
+                    
+                    <h3>Probabilidades por categoría</h3>
+                    <div id="probabilities"></div>
+                    
+                    <h3>Recomendaciones</h3>
+                    <div id="recommendations"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Universidad Privada Antenor Orrego</strong></p>
+            <p>Proyecto de Aprendizaje Estadístico - Semestre 2025-20</p>
+            <p>Docente: Hernan Sagastegui Chigne</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Actualizar valores de los sliders
+        document.getElementById('horas_redes_sociales').addEventListener('input', function() {
+            document.getElementById('horas_redes_valor').textContent = parseFloat(this.value).toFixed(1);
+        });
+        
+        document.getElementById('horas_estudio').addEventListener('input', function() {
+            document.getElementById('horas_estudio_valor').textContent = parseFloat(this.value).toFixed(1);
+        });
+
+        // Manejar envío del formulario
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loadingSpinner = document.querySelector('.loading');
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            
+            // Mostrar loading
+            loadingSpinner.style.display = 'inline-block';
+            submitButton.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayResults(result);
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error de conexión: ' + error.message);
+            } finally {
+                // Ocultar loading
+                loadingSpinner.style.display = 'none';
+                submitButton.disabled = false;
+            }
+        });
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const predictionResult = document.getElementById('predictionResult');
+            const probabilitiesDiv = document.getElementById('probabilities');
+            const recommendationsDiv = document.getElementById('recommendations');
+            
+            // Determinar clase CSS según resultado
+            let resultClass = 'result-promedio';
+            let resultColor = '#856404';
+            let resultLabel = 'PROMEDIO';
+            
+            if (result.prediction === 'Alto') {
+                resultClass = 'result-alto';
+                resultColor = '#155724';
+                resultLabel = 'ALTO';
+            } else if (result.prediction === 'Bajo') {
+                resultClass = 'result-bajo';
+                resultColor = '#721c24';
+                resultLabel = 'BAJO';
+            }
+            
+            // Mostrar resultado
+            predictionResult.innerHTML = `
+                <div class="${resultClass}">
+                    <p class="prediction-text" style="color: ${resultColor};">Rendimiento Predicho: ${resultLabel}</p>
+                </div>
+            `;
+            
+            // Mostrar probabilidades
+            let probabilitiesHTML = '';
+            result.probabilities.forEach(([label, prob]) => {
+                const percentage = (prob * 100).toFixed(1);
+                probabilitiesHTML += `
+                    <div class="mb-3">
+                        <strong>${label}:</strong> ${percentage}%
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: ${percentage}%; background-color: ${resultColor};"
+                                 aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">
+                                ${percentage}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            probabilitiesDiv.innerHTML = probabilitiesHTML;
+            
+            // Mostrar recomendaciones
+            const recs = result.recommendations;
+            let recommendationsHTML = `
+                <div class="recommendation-box">
+                    <strong style="color: ${recs.color};">${recs.title}</strong>
+                    <ul>
+            `;
+            recs.items.forEach(item => {
+                recommendationsHTML += `<li>${item}</li>`;
+            });
+            recommendationsHTML += '</ul></div>';
+            recommendationsDiv.innerHTML = recommendationsHTML;
+            
+            // Mostrar sección de resultados
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
