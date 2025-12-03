@@ -16,7 +16,7 @@ Este proyecto analiza la relacion entre el uso de redes sociales y el rendimient
 - **Correlacion negativa significativa (r = -0.682)** entre horas de uso de redes sociales y rendimiento academico
 - **Correlacion positiva fuerte (r = 0.739)** entre horas de estudio y rendimiento academico
 - El promedio de uso de redes sociales es de **4.5 horas diarias**
-- El modelo Random Forest logro una exactitud de **64.2%** en datos de prueba
+- El modelo Random Forest logro una exactitud de **71%** en datos de prueba
 
 ---
 
@@ -134,10 +134,10 @@ Acceder directamente a la aplicacion desplegada (si esta disponible):
 
 - **Framework:** Streamlit 1.28.0
 - **Modelo:** Random Forest Classifier
-- **Precision:** 64.2% en datos de prueba
+- **Precision:** 71% en datos de prueba
 
 ### Funcionalidades
-
+2
 1. **Ingreso de datos del estudiante:**
    - Edad, Ciclo academico
    - Horas en redes sociales
@@ -163,8 +163,7 @@ Acceder directamente a la aplicacion desplegada (si esta disponible):
 
 | Modelo | CV Accuracy |
 |--------|-------------|
-| Decision Tree | 65.6% (+/- 12.5%) |
-| Random Forest | 62.3% (+/- 11.4%) |
+| Decision Tree | 71% |
 
 ### Importancia de Caracteristicas (Top 5)
 
